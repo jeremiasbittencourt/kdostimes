@@ -1,0 +1,443 @@
+{
+  "info": {
+    "_postman_id": "cade-os-times-v1",
+    "name": "Cadê Os Times? — API",
+    "description": "Coleção completa da API REST do Cadê Os Times?. Importe no Postman/Insomnia, ajuste a variável `base_url` e rode `Auth > Login` primeiro — o script guarda o token automaticamente em `{{token}}`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {"key": "base_url", "value": "http://localhost:8000/api"},
+    {"key": "token", "value": ""},
+    {"key": "pelada_id", "value": ""},
+    {"key": "session_id", "value": ""},
+    {"key": "draw_id", "value": ""},
+    {"key": "voting_session_id", "value": ""},
+    {"key": "user_id", "value": ""}
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Rotas com rate limit 5/min por IP (seção 5.2 do brief).",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth", "register"]},
+            "body": {
+              "mode": "raw",
+              "options": {"raw": {"language": "json"}},
+              "raw": "{\n  \"name\": \"Carlos Craque\",\n  \"email\": \"carlos@example.com\",\n  \"password\": \"segredo12\",\n  \"password_confirmation\": \"segredo12\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) pm.collectionVariables.set('token', res.token);",
+                  "if (res.user && res.user.id) pm.collectionVariables.set('user_id', res.user.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"]},
+            "body": {
+              "mode": "raw",
+              "options": {"raw": {"language": "json"}},
+              "raw": "{\n  \"email\": \"carlos@example.com\",\n  \"password\": \"segredo12\",\n  \"device_name\": \"postman\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) pm.collectionVariables.set('token', res.token);",
+                  "if (res.user && res.user.id) pm.collectionVariables.set('user_id', res.user.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Forgot password",
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/auth/forgot-password", "host": ["{{base_url}}"], "path": ["auth", "forgot-password"]},
+            "body": {
+              "mode": "raw",
+              "options": {"raw": {"language": "json"}},
+              "raw": "{\n  \"email\": \"carlos@example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/auth/logout", "host": ["{{base_url}}"], "path": ["auth", "logout"]},
+            "body": {
+              "mode": "raw",
+              "options": {"raw": {"language": "json"}},
+              "raw": "{\n  \"device_token\": \"optional-fcm-token-to-remove\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Me",
+      "item": [
+        {
+          "name": "Profile",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{base_url}}/me", "host": ["{{base_url}}"], "path": ["me"]}
+          }
+        },
+        {
+          "name": "Update profile",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/me", "host": ["{{base_url}}"], "path": ["me"]},
+            "body": {
+              "mode": "raw",
+              "options": {"raw": {"language": "json"}},
+              "raw": "{\n  \"name\": \"Carlos Craque\",\n  \"skill_rating\": 8,\n  \"positions\": [\n    {\"position\": \"MEI\", \"priority\": 1},\n    {\"position\": \"ATA\", \"priority\": 2}\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Update notification preferences",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/me/notification-preferences", "host": ["{{base_url}}"], "path": ["me", "notification-preferences"]},
+            "body": {
+              "mode": "raw",
+              "options": {"raw": {"language": "json"}},
+              "raw": "{\n  \"preferences\": [\n    {\"event_type\": \"session_opened\", \"enabled\": true},\n    {\"event_type\": \"voting_deadline_reminder\", \"enabled\": false}\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Register device token (FCM)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/me/device-tokens", "host": ["{{base_url}}"], "path": ["me", "device-tokens"]},
+            "body": {
+              "mode": "raw",
+              "options": {"raw": {"language": "json"}},
+              "raw": "{\n  \"token\": \"exemplo-fcm-token-aqui\",\n  \"platform\": \"android\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Remove device token",
+          "request": {
+            "method": "DELETE",
+            "url": {"raw": "{{base_url}}/me/device-tokens/1", "host": ["{{base_url}}"], "path": ["me", "device-tokens", "1"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Peladas",
+      "item": [
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{base_url}}/peladas", "host": ["{{base_url}}"], "path": ["peladas"]}
+          }
+        },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/peladas", "host": ["{{base_url}}"], "path": ["peladas"]},
+            "body": {
+              "mode": "raw",
+              "options": {"raw": {"language": "json"}},
+              "raw": "{\n  \"name\": \"Fut de Quinta\",\n  \"location\": \"Quadra do Zé\",\n  \"day_of_week\": 4,\n  \"time\": \"20:00\",\n  \"players_per_team\": 5,\n  \"has_fixed_goalkeepers\": true,\n  \"confirmation_deadline_hours\": 2,\n  \"enabled_voting_category_codes\": [\"craque\", \"goleador\", \"garcom\", \"muralha\", \"paredao\", \"pior\"]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) pm.collectionVariables.set('pelada_id', res.data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Show",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{base_url}}/peladas/{{pelada_id}}", "host": ["{{base_url}}"], "path": ["peladas", "{{pelada_id}}"]}
+          }
+        },
+        {
+          "name": "Join (por short_code ou invite_token)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/peladas/join", "host": ["{{base_url}}"], "path": ["peladas", "join"]},
+            "body": {
+              "mode": "raw",
+              "options": {"raw": {"language": "json"}},
+              "raw": "{\n  \"short_code\": \"PEL-XXXXX\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create invite token",
+          "request": {
+            "method": "POST",
+            "url": {"raw": "{{base_url}}/peladas/{{pelada_id}}/invites", "host": ["{{base_url}}"], "path": ["peladas", "{{pelada_id}}", "invites"]}
+          }
+        },
+        {
+          "name": "Update member (marcar goleiro fixo)",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/peladas/{{pelada_id}}/members/{{user_id}}", "host": ["{{base_url}}"], "path": ["peladas", "{{pelada_id}}", "members", "{{user_id}}"]},
+            "body": {
+              "mode": "raw",
+              "options": {"raw": {"language": "json"}},
+              "raw": "{\n  \"is_fixed_goalkeeper\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Remove member",
+          "request": {
+            "method": "DELETE",
+            "url": {"raw": "{{base_url}}/peladas/{{pelada_id}}/members/{{user_id}}", "host": ["{{base_url}}"], "path": ["peladas", "{{pelada_id}}", "members", "{{user_id}}"]}
+          }
+        },
+        {
+          "name": "Update voting settings",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/peladas/{{pelada_id}}/voting-settings", "host": ["{{base_url}}"], "path": ["peladas", "{{pelada_id}}", "voting-settings"]},
+            "body": {
+              "mode": "raw",
+              "options": {"raw": {"language": "json"}},
+              "raw": "{\n  \"settings\": [\n    {\"code\": \"craque\", \"enabled\": true},\n    {\"code\": \"pior\", \"enabled\": false}\n  ]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Presence",
+      "item": [
+        {
+          "name": "Get current session",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{base_url}}/peladas/{{pelada_id}}/sessions/current", "host": ["{{base_url}}"], "path": ["peladas", "{{pelada_id}}", "sessions", "current"]}
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.session && res.session.id) pm.collectionVariables.set('session_id', res.session.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirm presence",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/sessions/{{session_id}}/presence", "host": ["{{base_url}}"], "path": ["sessions", "{{session_id}}", "presence"]},
+            "body": {
+              "mode": "raw",
+              "options": {"raw": {"language": "json"}},
+              "raw": "{\n  \"status\": \"confirmed\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Draw (Cadê Os Times?)",
+      "item": [
+        {
+          "name": "Generate (admin)",
+          "request": {
+            "method": "POST",
+            "url": {"raw": "{{base_url}}/sessions/{{session_id}}/draw", "host": ["{{base_url}}"], "path": ["sessions", "{{session_id}}", "draw"]}
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) pm.collectionVariables.set('draw_id', res.data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Publish (admin)",
+          "request": {
+            "method": "POST",
+            "url": {"raw": "{{base_url}}/draws/{{draw_id}}/publish", "host": ["{{base_url}}"], "path": ["draws", "{{draw_id}}", "publish"]}
+          }
+        },
+        {
+          "name": "Show published",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{base_url}}/sessions/{{session_id}}/draw", "host": ["{{base_url}}"], "path": ["sessions", "{{session_id}}", "draw"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Voting",
+      "item": [
+        {
+          "name": "Get voting for session",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{base_url}}/sessions/{{session_id}}/voting", "host": ["{{base_url}}"], "path": ["sessions", "{{session_id}}", "voting"]}
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.voting && res.voting.id) pm.collectionVariables.set('voting_session_id', res.voting.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cast vote",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {"raw": "{{base_url}}/voting-sessions/{{voting_session_id}}/votes", "host": ["{{base_url}}"], "path": ["voting-sessions", "{{voting_session_id}}", "votes"]},
+            "body": {
+              "mode": "raw",
+              "options": {"raw": {"language": "json"}},
+              "raw": "{\n  \"category_id\": 1,\n  \"voted_user_id\": 42\n}"
+            }
+          }
+        },
+        {
+          "name": "Results (after close)",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "{{base_url}}/voting-sessions/{{voting_session_id}}/results", "host": ["{{base_url}}"], "path": ["voting-sessions", "{{voting_session_id}}", "results"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ranking",
+      "item": [
+        {
+          "name": "List (period=month)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/peladas/{{pelada_id}}/ranking?period=month",
+              "host": ["{{base_url}}"],
+              "path": ["peladas", "{{pelada_id}}", "ranking"],
+              "query": [{"key": "period", "value": "month"}]
+            }
+          }
+        },
+        {
+          "name": "List (period=all)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/peladas/{{pelada_id}}/ranking?period=all",
+              "host": ["{{base_url}}"],
+              "path": ["peladas", "{{pelada_id}}", "ranking"],
+              "query": [{"key": "period", "value": "all"}]
+            }
+          }
+        },
+        {
+          "name": "List (period=last10)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/peladas/{{pelada_id}}/ranking?period=last10",
+              "host": ["{{base_url}}"],
+              "path": ["peladas", "{{pelada_id}}", "ranking"],
+              "query": [{"key": "period", "value": "last10"}]
+            }
+          }
+        },
+        {
+          "name": "User detail",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/peladas/{{pelada_id}}/ranking/{{user_id}}?period=month",
+              "host": ["{{base_url}}"],
+              "path": ["peladas", "{{pelada_id}}", "ranking", "{{user_id}}"],
+              "query": [{"key": "period", "value": "month"}]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
